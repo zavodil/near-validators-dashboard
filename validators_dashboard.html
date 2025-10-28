@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEAR Protocol Validators Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="pool-details.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .timestamp {
+            color: rgba(255, 255, 255, 0.9);
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 0.9em;
+        }
+
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .card h3 {
+            color: #667eea;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+
+        .card .value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .chart-container {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 400px;
+            margin-bottom: 20px;
+        }
+
+        .version-lists {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        .version-section {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .version-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .version-header:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .version-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: white;
+        }
+
+        .version-stats {
+            text-align: right;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 0.9em;
+        }
+
+        .validators-list {
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 0 5px;
+        }
+
+        .validator-item {
+            padding: 12px 15px;
+            margin-bottom: 8px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .validator-item:hover {
+            background: #e9ecef;
+        }
+
+        .validator-main-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .validator-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+        }
+
+        .validator-quick-links {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .validator-quick-links a {
+            color: #667eea;
+            font-size: 1.1em;
+            transition: color 0.2s;
+        }
+
+        .validator-quick-links a:hover {
+            color: #5568d3;
+        }
+
+        .validator-name {
+            font-family: 'Courier New', monospace;
+            color: #333;
+            font-size: 0.9em;
+        }
+
+        .validator-stake {
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .validators-list::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .validators-list::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        .validators-list::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 4px;
+        }
+
+        .validators-list::-webkit-scrollbar-thumb:hover {
+            background: #5568d3;
+        }
+
+        .collapsed .validators-list {
+            display: none;
+        }
+
+        .toggle-icon {
+            margin-left: 10px;
+            transition: transform 0.3s ease;
+        }
+
+        .collapsed .toggle-icon {
+            transform: rotate(-90deg);
+        }
+
+        .pool-contacts {
+            padding: 10px 0;
+            font-size: 0.85em;
+            line-height: 1.6;
+        }
+
+        .pool-contacts .contact-item {
+            margin: 8px 0;
+            color: #555;
+        }
+
+        .pool-contacts .contact-item strong {
+            font-size: 1.1em;
+            color: #333;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .pool-contacts .contact-item.description {
+            font-style: italic;
+            color: #666;
+            margin: 10px 0;
+        }
+
+        .pool-contacts .contact-item i {
+            margin-right: 8px;
+            color: #667eea;
+            width: 16px;
+            text-align: center;
+        }
+
+        .pool-contacts .contact-item a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .pool-contacts .contact-item a:hover {
+            text-decoration: underline;
+        }
+
+        .validator-item {
+            position: relative;
+        }
+
+        .validator-details {
+            display: none;
+            padding: 15px;
+            background: white;
+            border-left: 3px solid #667eea;
+            margin-top: 10px;
+            border-radius: 4px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .validator-item.expanded .validator-details {
+            display: block;
+        }
+
+        .info-icon {
+            color: #667eea;
+            cursor: pointer;
+            font-size: 1em;
+            transition: transform 0.2s;
+        }
+
+        .info-icon:hover {
+            transform: scale(1.2);
+        }
+
+        .loading-text {
+            text-align: center;
+            padding: 20px;
+            color: #999;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>NEAR Protocol Validators Dashboard</h1>
+        <div class="timestamp" id="timestamp">Loading...</div>
+
+        <div class="summary-cards">
+            <div class="card">
+                <h3>Block Producers</h3>
+                <div class="value" id="block-producers">-</div>
+            </div>
+            <div class="card">
+                <h3>Total Validators</h3>
+                <div class="value" id="total-validators">-</div>
+            </div>
+            <div class="card">
+                <h3>Total Stake</h3>
+                <div class="value" id="total-stake">-</div>
+            </div>
+        </div>
+
+        <div class="chart-container">
+            <h2 style="color: #667eea; margin-bottom: 20px;">Stake Distribution by Protocol Version</h2>
+            <div class="chart-wrapper">
+                <canvas id="pieChart"></canvas>
+            </div>
+        </div>
+
+        <div class="version-lists" id="version-lists">
+            <!-- Will be populated by JavaScript -->
+        </div>
+    </div>
+
+    <script>
+        const COLORS = [
+            '#667eea', '#764ba2', '#f093fb', '#4facfe',
+            '#43e97b', '#fa709a', '#fee140', '#30cfd0',
+            '#a8edea', '#fed6e3', '#c471f5', '#fa71cd'
+        ];
+
+        async function loadData() {
+            try {
+                // Load validators data and pool details in parallel
+                // Add timestamp to bypass cache
+                const [validatorsResponse] = await Promise.all([
+                    fetch('validators_data.json?t=' + new Date().getTime()),
+                    window.poolDetailsService.loadPoolDetails()
+                ]);
+
+                const data = await validatorsResponse.json();
+                renderDashboard(data);
+            } catch (error) {
+                console.error('Error loading data:', error);
+                alert('Failed to load validators data. Make sure validators_data.json exists.');
+            }
+        }
+
+        function renderDashboard(data) {
+            // Update timestamp
+            const timestamp = new Date(data.timestamp);
+            document.getElementById('timestamp').textContent =
+                `Last updated: ${timestamp.toLocaleString()}`;
+
+            // Debug logging
+            console.log('Dashboard data:', {
+                total_validators: data.summary.total_validators,
+                block_producers: data.summary.block_producers,
+                total_stake: data.summary.total_stake
+            });
+
+            // Update summary cards
+            document.getElementById('block-producers').textContent =
+                data.summary.block_producers.toLocaleString();
+            document.getElementById('total-validators').textContent =
+                (data.summary.total_validators || '-').toLocaleString();
+            document.getElementById('total-stake').textContent =
+                Math.round(data.summary.total_stake).toLocaleString() + ' NEAR';
+
+            // Render pie chart
+            renderPieChart(data.by_version);
+
+            // Render version lists
+            renderVersionLists(data.by_version);
+        }
+
+        function renderPieChart(byVersion) {
+            const ctx = document.getElementById('pieChart').getContext('2d');
+
+            const labels = byVersion.map(v => `Version ${v.version}`);
+            const values = byVersion.map(v => v.stake);
+            const colors = COLORS.slice(0, byVersion.length);
+
+            new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: values,
+                        backgroundColor: colors,
+                        borderColor: 'white',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                padding: 20,
+                                font: {
+                                    size: 14
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.parsed || 0;
+                                    const percent = ((value / context.dataset.data.reduce((a,b) => a+b, 0)) * 100).toFixed(2);
+                                    return `${label}: ${Math.round(value).toLocaleString()} NEAR (${percent}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderVersionLists(byVersion) {
+            const container = document.getElementById('version-lists');
+            container.innerHTML = '';
+
+            byVersion.forEach((versionData, index) => {
+                const section = document.createElement('div');
+                section.className = 'version-section';
+
+                const color = COLORS[index % COLORS.length];
+
+                section.innerHTML = `
+                    <div class="version-header" style="background: ${color};" onclick="toggleSection(this)">
+                        <div>
+                            <div class="version-title">Version ${versionData.version}<span class="toggle-icon">▼</span></div>
+                            <div class="version-stats">
+                                ${versionData.count} block producers | ${versionData.percent.toFixed(2)}% of stake
+                            </div>
+                        </div>
+                    </div>
+                    <div class="validators-list">
+                        ${versionData.validators.map((v, vidx) => {
+                            const poolInfo = window.poolDetailsService.formatPoolInfo(v.account_id);
+                            const hasMoreInfo = poolInfo && (poolInfo.name || poolInfo.email ||
+                                           poolInfo.description || poolInfo.country || poolInfo.telegram || poolInfo.discord);
+
+                            // Quick links (Twitter and URL)
+                            let quickLinks = '';
+                            if (poolInfo) {
+                                if (poolInfo.url) {
+                                    let url = poolInfo.url;
+                                    if (!/^https?:\/\//i.test(url)) url = 'http://' + url;
+                                    quickLinks += `<a href="${url}" target="_blank" title="Website"><i class="fas fa-globe"></i></a>`;
+                                }
+                                if (poolInfo.twitter) {
+                                    const twitterHandle = poolInfo.twitter.replace('@', '');
+                                    quickLinks += `<a href="https://twitter.com/${twitterHandle}" target="_blank" title="Twitter @${twitterHandle}"><i class="fab fa-twitter"></i></a>`;
+                                }
+                            }
+
+                            return `
+                                <div class="validator-item" data-validator-id="${vidx}">
+                                    <div class="validator-main-row">
+                                        <div class="validator-left">
+                                            <span class="validator-name">${v.account_id}</span>
+                                            ${quickLinks ? `<div class="validator-quick-links">${quickLinks}</div>` : ''}
+                                            ${hasMoreInfo ? '<i class="fas fa-info-circle info-icon" onclick="toggleValidatorDetails(this)"></i>' : ''}
+                                        </div>
+                                        <span class="validator-stake">${Math.round(v.stake).toLocaleString()} NEAR</span>
+                                    </div>
+                                    ${hasMoreInfo ? `
+                                        <div class="validator-details">
+                                            ${window.poolDetailsService.createContactsHTML(v.account_id, true)}
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
+
+                container.appendChild(section);
+            });
+        }
+
+        function toggleSection(header) {
+            const section = header.parentElement;
+            section.classList.toggle('collapsed');
+        }
+
+        function toggleValidatorDetails(element) {
+            const validatorItem = element.closest('.validator-item');
+            validatorItem.classList.toggle('expanded');
+        }
+
+        // Load data on page load
+        loadData();
+    </script>
+</body>
+</html>
