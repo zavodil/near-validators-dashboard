@@ -476,6 +476,35 @@
             renderVersionLists(data.by_version);
         }
 
+        // Custom plugin to display percentages on pie chart
+        const percentagePlugin = {
+            id: 'percentagePlugin',
+            afterDatasetsDraw: function(chart) {
+                const ctx = chart.ctx;
+                chart.data.datasets.forEach((dataset, datasetIndex) => {
+                    const meta = chart.getDatasetMeta(datasetIndex);
+                    if (!meta.hidden) {
+                        const total = dataset.data.reduce((sum, value) => sum + value, 0);
+                        meta.data.forEach((element, index) => {
+                            const data = dataset.data[index];
+                            const percent = Math.round((data / total) * 100);
+
+                            // Only show percentage if it's >= 1%
+                            if (percent >= 1) {
+                                ctx.fillStyle = '#fff';
+                                ctx.font = 'bold 16px Arial';
+                                ctx.textAlign = 'center';
+                                ctx.textBaseline = 'middle';
+
+                                const position = element.tooltipPosition();
+                                ctx.fillText(percent + '%', position.x, position.y);
+                            }
+                        });
+                    }
+                });
+            }
+        };
+
         function renderPieChart(byVersion) {
             const ctx = document.getElementById('pieChart').getContext('2d');
 
@@ -518,7 +547,8 @@
                             }
                         }
                     }
-                }
+                },
+                plugins: [percentagePlugin]
             });
         }
 
