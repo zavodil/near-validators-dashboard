@@ -2,6 +2,10 @@
 
 A web dashboard for monitoring NEAR Protocol validators, their protocol versions, and stake distribution.
 
+🔗 **Live Demo**: [https://nearspace.info/blog/tools/validators_dashboard.html](https://nearspace.info/blog/tools/validators_dashboard.html)
+
+🐙 **GitHub Repository**: [https://github.com/zavodil/near-validators-dashboard](https://github.com/zavodil/near-validators-dashboard)
+
 **Based on the script by [@evgenykuzyakov](https://gist.github.com/evgenykuzyakov):**
 https://gist.github.com/darioush/be8e30ade6bfa59dda5381aef176cae6?permalink_comment_id=5822117
 

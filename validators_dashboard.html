@@ -293,7 +293,7 @@
 <body>
     <div class="container">
         <h1>NEAR Protocol Validators Dashboard</h1>
-        <div class="timestamp" id="timestamp">Loading...</div>
+        <div class="timestamp" id="timestamp">Loading...</div>        
 
         <div class="summary-cards">
             <div class="card">
@@ -319,6 +319,12 @@
 
         <div class="version-lists" id="version-lists">
             <!-- Will be populated by JavaScript -->
+        </div>
+
+        <div style="text-align: center; margin-top: 20px;">
+            <a href="https://github.com/zavodil/near-validators-dashboard" target="_blank" style="color: white; text-decoration: none; font-size: 0.9em;">
+                <i class="fab fa-github"></i> View on GitHub
+            </a>
         </div>
     </div>
 
@@ -350,7 +356,7 @@
             // Update timestamp
             const timestamp = new Date(data.timestamp);
             document.getElementById('timestamp').textContent =
-                `Last updated: ${timestamp.toLocaleString()}`;
+                `Last updated: ${timestamp.toLocaleString()} (UTC)`;
 
             // Debug logging
             console.log('Dashboard data:', {
